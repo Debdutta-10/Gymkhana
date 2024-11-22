@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import './App.css';
 
 function App() {
-  const [textBoxContent, setTextBoxContent] = useState("");
+  const [name, setName] = useState("");
+  const [ordersText, setOrdersText] = useState("");
   const [orders, setOrders] = useState(() => {
     const savedOrders = localStorage.getItem("orders");
     return savedOrders ? JSON.parse(savedOrders) : [];
@@ -13,46 +15,39 @@ function App() {
   }, [orders]);
 
   const handleAddOrder = () => {
-    if (textBoxContent.trim() === "") return;
+    if (name.trim() === "" || ordersText.trim() === "") return;
 
-    const lines = textBoxContent.split("\n").map((line) => line.trim());
+    const lines = ordersText.split("\n").map((line) => line.trim());
     const updatedOrders = [...orders];
 
     lines.forEach((line) => {
       if (line === "") return;
 
-      // Split line into name and food items
-      const [name, foodItems] = line.split(":").map((part) => part.trim());
-      if (!name || !foodItems) return;
+      const match = line.match(/^(\d+)?\s*(.+)$/); // Regex to extract quantity and food item
+      if (match) {
+        const [, quantityString, foodName] = match;
+        const quantityToAdd = parseInt(quantityString) || 1; // Default quantity to 1
+        const food = foodName.trim().toLowerCase(); // Normalize food name
 
-      const items = foodItems.split(",").map((item) => item.trim());
-
-      items.forEach((item) => {
-        const match = item.match(/^(\d+)?\s*(.+)$/); // Regex to extract quantity and food item
-        if (match) {
-          const [, quantityString, foodName] = match;
-          const quantityToAdd = parseInt(quantityString) || 1; // Default quantity to 1
-          const food = foodName.trim().toLowerCase(); // Normalize food name
-
-          const existingOrder = updatedOrders.find((order) => order.item === food);
-          if (existingOrder) {
-            existingOrder.quantity += quantityToAdd;
-            if (!existingOrder.people.includes(name)) {
-              existingOrder.people.push(name);
-            }
-          } else {
-            updatedOrders.push({
-              item: food,
-              quantity: quantityToAdd,
-              people: [name],
-            });
+        const existingOrder = updatedOrders.find((order) => order.item === food);
+        if (existingOrder) {
+          existingOrder.quantity += quantityToAdd;
+          if (!existingOrder.people.includes(name)) {
+            existingOrder.people.push(name);
           }
+        } else {
+          updatedOrders.push({
+            item: food,
+            quantity: quantityToAdd,
+            people: [name],
+          });
         }
-      });
+      }
     });
 
     setOrders(updatedOrders);
-    setTextBoxContent("");
+    setName("");
+    setOrdersText("");
   };
 
   const handleClearOrders = () => {
@@ -62,18 +57,30 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Food Order Tracker</h1>
+      <h1 style={{textAlign:"center"}}>Food Order Tracker</h1>
 
-      {/* Textarea Input Section */}
-      <div>
+      {/* Input Section */}
+      <div className="holder">
+        <input
+          type="text"
+          placeholder="Enter your name"
+          className="input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{
+            
+          } }
+        />
         <textarea
-          placeholder="Enter name and food items in the format:\nName: item1, item2, 3item3\nExample:\nJohn: 2 Burgers, Fries\nJane: 3 Chicken Fried Rice"
-          value={textBoxContent}
-          onChange={(e) => setTextBoxContent(e.target.value)}
-          rows={8}
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+          placeholder="Enter orders in the format: quantity item1 \n quantity item2"
+          value={ordersText}
+          onChange={(e) => setOrdersText(e.target.value)}
+          rows={7}
+          className="textarea"
         ></textarea>
-        <button onClick={handleAddOrder}>Add Orders</button>
+        <button onClick={handleAddOrder} style={{ padding: "10px 20px",width:"10%",display:"block",margin:"auto"}} className="but">
+          Add Orders
+        </button>
       </div>
 
       {/* Orders Display */}
