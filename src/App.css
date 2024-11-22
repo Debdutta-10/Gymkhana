@@ -4,6 +4,11 @@
   justify-content: center;
   align-items: center;
 }
+.i1{
+  border: none;
+  background-color: #efdae3;
+  font-size: 1.1rem;
+}
 .input{
   width: 80%;
   padding: 10px;
